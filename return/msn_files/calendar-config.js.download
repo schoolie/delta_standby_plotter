@@ -1,0 +1,26 @@
+//These codes configure the Calendar to be used on the indicated input name 
+
+  Calendar.setup( 
+	{
+      inputField  : "leaveDate",         // ID of the input field
+      ifFormat    : "%m/%d/%Y",    // the date format
+      button      : "leaveDateButton"       // ID of the button
+    }
+  );
+
+
+  Calendar.setup( 
+	{
+      inputField  : "returnDate",         // ID of the input field
+      ifFormat    : "%m/%d/%Y",    // the date format
+      button      : "returnDateButton"       // ID of the button
+    }
+  );
+  
+  Calendar.setup( 
+	{
+	  inputField  : "flightLeaveDate",         // ID of the input field
+	  ifFormat    : "%m/%d/%Y",    // the date format
+	  button      : "flightLeaveDateButton"       // ID of the button
+	}
+  );

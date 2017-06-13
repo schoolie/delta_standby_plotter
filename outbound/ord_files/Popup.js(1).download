@@ -1,0 +1,952 @@
+
+var prevContent;
+var prevLink;
+
+var PLEASE_WAIT_TEXT = "Please Wait";
+
+function showWaitListContent( flightNumber){
+	var waitListFlight = document.getElementById( "waitList" + flightNumber );
+	var waitLinkFlight = document.getElementById( "waitLink" + flightNumber );
+	document.forms[0].standByPagePopup.value = "nonrevPage";
+	
+	if( waitListFlight != null ){
+		if( prevContent != null ){
+			prevContent.style.display = "none";
+		}
+		waitListFlight.style.display = "block";
+		prevContent = waitListFlight;
+	}
+	if( waitLinkFlight != null ){
+		if( prevLink != null ){
+			prevLink.style.backgroundColor = "#ffffff";
+		}
+		waitLinkFlight.style.backgroundColor = "#dddddd";
+		prevLink = waitLinkFlight;
+	}
+}
+
+var prevAirContent;
+var prevAirLink;
+
+function showAirportListContent( flightNumber ){
+	var waitListFlight = document.getElementById( "airportList" + flightNumber );
+	var waitLinkFlight = document.getElementById( "airportLink" + flightNumber );
+	document.forms[0].standByPagePopup.value = "airportPage";
+	
+	if( waitListFlight != null ){
+		if( prevAirContent != null ){
+			prevAirContent.style.display = "none";
+		}
+		waitListFlight.style.display = "block";
+		prevAirContent = waitListFlight;
+	}
+	if( waitLinkFlight != null ){
+		if( prevAirLink != null ){
+			prevAirLink.style.backgroundColor = "#ffffff";
+		}
+		waitLinkFlight.style.backgroundColor = "#dddddd";
+		prevAirLink = waitLinkFlight;
+	}
+}
+
+function showStandbyList( thisPage){
+	var nonRevenuePage = document.getElementById( "nonRevenueStandbyPage" );
+	var airportPage = document.getElementById( "airportStandbyPage" );
+	
+	var firstSegment = document.getElementById("firstSegmentFlight");
+	var flightNumber;
+	if (document.forms[0].flightNumberPopup != null) {
+		flightNumber = document.forms[0].flightNumberPopup.value;
+	}
+	
+	if( thisPage == "nonrevPage" ){
+		if( flightNumber != null && flightNumber != "" ){
+			showWaitListContent( flightNumber );
+		}else if( firstSegment != null && firstSegment.value != ""  ){
+			showWaitListContent( firstSegment.value );
+		}
+		nonRevenuePage.style.display = "block";
+		airportPage.style.display = "none";
+	}
+	if( thisPage == "airportPage" ){
+		if( flightNumber != null && flightNumber != "" ){
+			showAirportListContent( flightNumber );
+		}else if( firstSegment != null && firstSegment.value != ""  ){
+			showAirportListContent( firstSegment.value );
+		}
+		airportPage.style.display = "block";
+		nonRevenuePage.style.display = "none";
+	}
+}
+
+function hideParentSplashPage(){
+	var parentWindow = window.dialogArguments;
+	parentWindow.hideLoadingSplash();
+}
+
+function refreshWaitList(page){
+	var loadMessage = PLEASE_WAIT_TEXT; //aay 20150817 - QC 2751
+	
+	var loadSplash = document.getElementById("waitlistLoadingSplash");
+	var innerText = "<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>";
+	innerText += "<span class=\"waitlistSplashText\">";
+	if (loadMessage != null && loadMessage != "") {
+		innerText += loadMessage;
+	} else {
+		innerText += PLEASE_WAIT_TEXT; //aay 20150817 - QC 2751
+	}
+	innerText += "</span>";
+	loadSplash.innerHTML = innerText;
+
+	hideAllSelectElement();
+	document.getElementById("topAnchor").focus();
+	loadSplash.style.visibility = "visible";
+	
+	document.forms[0].submit();
+}
+
+/* rqb 20140904 NOT USED
+function showFlightLoadInPopup(listId,source,activeMenu,carrier){
+	showLoadingSplash("Please wait while the Standby List is loading");
+	var forwardURL = "/showFlightLoad.do?temp=temp&listId="+listId+"&" +
+	"source="+source+"&activeMenuForStandbyList="+activeMenu+"&carrierCode="+carrier;
+	forward(forwardURL);
+}
+*/
+//rqb 20140107 Struts2 DWR
+//aay 20150924 Mulan Added 'px' in order to work in new browsers
+function showInLayeredPopup(loadingMessage, pageWidth, pageHeight, pageTop, pageLeft){
+	showPopupSplash(loadingMessage);
+	popLayer = document.getElementById("layeredPopup");
+
+	if( popLayer != null && pageWidth != null && pageWidth != "" ){
+		popLayer.style.width = parseInt(pageWidth) + 'px';
+	}
+	if( popLayer != null && pageHeight != null && pageHeight != "" ){
+		popLayer.style.height = parseInt(pageHeight) + 'px';
+	}
+	if( popLayer != null && pageTop != null && pageTop != "" ){
+		popLayer.style.top = parseInt(pageTop) + 'px';
+	} else if( popLayer != null && pageHeight != null && pageHeight != "" ){
+		popLayer.style.top = ( parseInt(screen.height)/2  - parseInt(pageHeight) / 2 ) + 'px';
+	} else if( popLayer != null ){
+		popLayer.style.top = "200px";
+	}
+	if( popLayer != null && pageLeft != null && pageLeft != "" ){
+		popLayer.style.left = parseInt(pageLeft) + 'px';
+	} else if( popLayer != null && pageWidth != null && pageWidth != "" ){
+		popLayer.style.left = ( parseInt(screen.width)/2 - parseInt(pageWidth) / 2 ) + 'px';
+	} else if( popLayer != null ){
+		popLayer.style.left = "200px";
+	}
+}
+
+function showPageInPopup(loadingMessage, pageURL, pageWidth, pageHeight, pageTop, pageLeft){
+	showPopupSplash(loadingMessage);
+	popLayer = document.getElementById("layeredPopup");
+
+	if( popLayer != null && pageWidth != null && pageWidth != "" ){
+		popLayer.style.width = parseInt(pageWidth);
+	}
+	if( popLayer != null && pageHeight != null && pageHeight != "" ){
+		popLayer.style.height = parseInt(pageHeight);
+	}
+	//mia 20100826 fix for centering popups start
+	if( popLayer != null && pageTop != null && pageTop != "" ){
+		popLayer.style.top = parseInt(pageTop);
+	} else if( popLayer != null && pageHeight != null && pageHeight != "" ){
+		popLayer.style.top = ( parseInt(screen.height)/2  - parseInt(pageHeight) / 2 );
+	} else if( popLayer != null ){
+		popLayer.style.top = "200";
+	}
+	if( popLayer != null && pageLeft != null && pageLeft != "" ){
+		popLayer.style.left = parseInt(pageLeft);
+	} else if( popLayer != null && pageWidth != null && pageWidth != "" ){
+		popLayer.style.left = ( parseInt(screen.width)/2 - parseInt(pageWidth) / 2 );
+	} else if( popLayer != null ){
+		popLayer.style.left = "200";
+	}
+	//mia 20100826 fix for centering popups end
+	forward(pageURL);
+}
+
+
+function forward(forwardURL) {
+  Popup.getInclude(forwardURL, function(data) {
+    dwr.util.setValue("forward", data, { escapeHtml:false });
+    checkForTimeout("forward");
+    emptyPopupSplash();
+    showLayeredPopup();
+  });
+}
+
+function showPageInPopupCalc(loadingMessage, pageURL, pageWidth, pageHeight, pageTop, pageLeft){
+	showPopupSplash(loadingMessage);
+	popLayer = document.getElementById("layeredPopup2");
+
+	if( popLayer != null && pageWidth != null && pageWidth != "" ){
+		popLayer.style.width = parseInt(pageWidth);
+	}
+	if( popLayer != null && pageHeight != null && pageHeight != "" ){
+		popLayer.style.height = parseInt(pageHeight);
+	}
+	//mia 20100826 fix for centering popups start
+	if( popLayer != null && pageTop != null && pageTop != "" ){
+		popLayer.style.top = parseInt(pageTop);
+	} else if( popLayer != null && pageHeight != null && pageHeight != "" ){
+		popLayer.style.top = ( parseInt(screen.height)/2  - parseInt(pageHeight) / 2 );
+	} else if( popLayer != null ){
+		popLayer.style.top = "200";
+	}
+	if( popLayer != null && pageLeft != null && pageLeft != "" ){
+		popLayer.style.left = parseInt(pageLeft);
+	} else if( popLayer != null && pageWidth != null && pageWidth != "" ){
+		popLayer.style.left = ( parseInt(screen.width)/2 - parseInt(pageWidth) / 2 );
+	} else if( popLayer != null ){
+		popLayer.style.left = "200";
+	}
+	//mia 20100826 fix for centering popups end
+	forwardCalc(pageURL);
+}
+
+//rqb 20131226 - Struts2 - dwr that calls an action class doesn't work in struts2
+function forwardCalc(forwardURL) {
+  Popup.getCalculatorInfo(forwardURL, function(data) {
+    dwr.util.setValue("forward2", data, { escapeHtml:false });
+    checkForTimeout("forward2");
+    emptyPopupSplash();
+    showLayeredPopupCalc();
+  });
+}
+
+function update() {
+  var name = dwr.util.getValue("demoName");
+  Popup.sayHello(name, function(data) {
+    dwr.util.setValue("demoReply", data);
+  });
+}
+
+
+isIE=document.all;
+isNN=!document.all&&document.getElementById;
+isN4=document.layers;
+enableLayeredPopupMove=false;
+elementLayer = '';
+//pageEvent = null;
+
+function setStartLayerMove(e){
+	if(enableLayeredPopupMove){
+		popLayer = document.getElementById(elementLayer);
+		if (popLayer == null) {
+			popLayer = document.getElementById("layeredPopup");
+		}
+		layeredPopupTop = parseInt(popLayer.style.top.split('px')[0]);
+		layeredPopupLeft = parseInt(popLayer.style.left.split('px')[0]);
+		offsetLeft = isIE ? event.clientX : e.clientX;
+	    offsetTop = isIE ? event.clientY : e.clientY;
+	    enableLayeredPopupMove = true;
+		document.onmousemove = moveLayeredPopup;
+	}
+}
+
+function moveLayeredPopup(e){
+	
+	if(!enableLayeredPopupMove) return false;
+	popLayer.style.left = (isIE ? layeredPopupLeft + event.clientX - offsetLeft : 
+		layeredPopupLeft + e.clientX - offsetLeft) + 'px';
+	popLayer.style.top = (isIE ? layeredPopupTop + event.clientY - offsetTop:
+		layeredPopupTop + e.clientY - offsetTop) + 'px';
+	return false;
+}
+
+function setEndLayerMove(){
+	enableLayeredPopupMove = false;
+	document.onmousemove = null;
+}
+
+function showLayeredPopup(event, layeredPopupDiv){
+	if(layeredPopupDiv == null || layeredPopupDiv == ''){
+		layeredPopupDiv = "layeredPopup";
+	}
+	popLayer = document.getElementById(layeredPopupDiv);  
+	if(	popLayer != null ){
+		popLayer.style.visibility = "visible";
+	}
+}
+
+function showLayeredPopupCalc(event){
+	popLayer = document.getElementById("layeredPopup2");  
+	if(	popLayer != null ){
+		popLayer.style.visibility = "visible";
+	}
+}
+
+function hideLayeredPopup(event, layeredPopupDiv, popupSplashDiv, forwardDiv){
+	if(layeredPopupDiv == null || layeredPopupDiv == ''){
+		layeredPopupDiv = "layeredPopup";
+	}
+	if(forwardDiv == null || forwardDiv == ''){
+		forwardDiv = "forward";
+	}
+	popLayer = document.getElementById(layeredPopupDiv);  
+	if(	popLayer != null ){
+		popLayer.style.visibility = "hidden";
+	}
+	hidePopupSplash(popupSplashDiv);
+	clearForwardContent(forwardDiv);
+	unhideAllSelectElement();
+}
+
+function hideLayeredPopupCalc(event){
+	popLayer = document.getElementById("layeredPopup2");  
+	if(	popLayer != null ){
+		popLayer.style.visibility = "hidden";
+	}
+	hidePopupSplash();
+	clearForwardContent("forward2");
+	unhideAllSelectElement();
+}
+
+function emptyPopupSplash(popupSplashDiv){
+	if(popupSplashDiv == null || popupSplashDiv == ''){
+		popupSplashDiv = "popupSplash";
+	}
+	var popupSplash = document.getElementById(popupSplashDiv);
+	popupSplash.innerHTML = "";
+	return true;
+}
+
+function checkForTimeout(forwardName){
+	var forwardDiv = document.getElementById(forwardName);
+	if( forwardDiv != null){
+		if(forwardDiv.innerHTML.indexOf("<DIV id=infp_test>") == 0 ){
+			location.href="logout.jsp";
+		}
+	}
+}
+
+function clearForwardContent(forwardName){
+	var forwardDiv = document.getElementById(forwardName);
+	if( forwardDiv != null){
+		forwardDiv.innerHTML = "";
+	}
+}
+
+function showPopupSplash(splashText, popupSplashDiv){
+	if(popupSplashDiv == null || popupSplashDiv == ''){
+		popupSplashDiv = "popupSplash";
+	}
+	
+	var popupSplash = document.getElementById(popupSplashDiv);
+	var innerText = "<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>";
+	innerText += "<div class=\"splashText\">";
+	if (splashText != null && splashText != "") {
+		innerText += splashText;
+	} else {
+		innerText += PLEASE_WAIT_TEXT;
+	}
+	innerText += "</div>";
+	popupSplash.innerHTML = innerText;
+
+	hideAllSelectElement();
+	document.getElementById("topAnchor").focus();
+	popupSplash.style.visibility = "visible";
+	return true;
+}
+
+function hidePopupSplash(popupSplashDiv){
+	if(popupSplashDiv == null || popupSplashDiv == ''){
+		popupSplashDiv = "popupSplash";
+	}
+	var popupSplash = document.getElementById(popupSplashDiv);
+	popupSplash.innerHTML = '';
+	hideElement(popupSplashDiv);
+}
+
+document.onmousedown=setStartLayerMove;
+document.onmouseup=Function("enableLayeredPopupMove=false");
+
+//add functions here that can be called by the pages.
+
+function confirmStartover(){
+	showPageInPopup("","/WEB-INF/jsps/popup/confirmStartOverPopup.jsp", "400", "220");
+}
+
+//rqb 20140108 - dwr that calls an action class does not work in struts2
+function showFlightInfoPopup(departureAirport, arrivalAirport, flightNumber, 
+		departureMonth, departureDate, carrierCode, depDate, carrierName, 
+		isCodeShare, isConnectionCarrier){
+	var stringUrl = "/WEB-INF/jsps/popup/flightInformationPopup.jsp?departureAirport="
+		+departureAirport+"&arrivalAirport="+arrivalAirport+"&flightNumber="+flightNumber
+		+"&departureDay="+departureMonth+"&departureDate="+departureDate+"&carrierName="+carrierName+"&isCodeShare="
+		+isCodeShare+"&isConnectionCarrier="+isConnectionCarrier;
+	
+	showInLayeredPopup(PLEASE_WAIT_TEXT,"800", null, "200", "100"); //aay 20150817 - QC 2751
+	Popup.getFlightInformation(stringUrl, function(data) {
+    	dwr.util.setValue("forward", data, { escapeHtml:false });
+	    checkForTimeout("forward");
+	    emptyPopupSplash();
+    	showLayeredPopup();
+	});				
+}
+
+function validateTravelCompanion(){
+	var stringUrl = "/WEB-INF/jsps/popup/validateTravelCompanionPopup.jsp";
+	showPageInPopup("",stringUrl,"400","300");
+}
+
+function submitFormType(type){
+	hideLayeredPopup();
+//	if (type == 'reserve'){
+//		showLoadingSplash("Please wait while the system creates your reservation.");
+//	} else if (type == 'validate'){
+//		showLoadingSplash("Please wait while the system validates your Travel Companion's data.");
+//	}	
+	showLoadingSplash(PLEASE_WAIT_TEXT); //aay 20150817 - QC 2751
+	document.forms[0].submit();
+}
+
+function createReservationConfirmation(){
+	var stringUrl = "/WEB-INF/jsps/popup/createReservationConfirmationPopup.jsp";
+	showPageInPopup("",stringUrl,"600","250");
+}
+
+function changeReservationConfirmation(){
+	var stringUrl = "/WEB-INF/jsps/popup/changeReservationConfirmationPopup.jsp";
+	showPageInPopup("",stringUrl,"600","250");
+}
+
+function backToReviewPage(activeMenu){
+	hideLayeredPopup();
+	if (activeMenu == 'oneGreatTeam'){
+		document.forms[0].action = "oneGreatTeamReview.action";
+	}else if (activeMenu == 'newDay'){
+		document.forms[0].action = "newDayReview.action";
+	}else if (activeMenu == 'skyTeamSummerRewards'){
+		document.forms[0].action = "skyTeamSummerRewardsReview.action";
+	}
+	document.forms[0].submit();
+}
+
+function backToChangeReviewPage(activeMenu){
+	hideLayeredPopup();
+	if (activeMenu == 'oneGreatTeam'){
+		document.forms[0].action = "oneGreatTeamChange.action";
+	}else if (activeMenu == 'newDay'){
+		document.forms[0].action = "newDayChange.action";
+	}else if (activeMenu == 'skyTeamSummerRewards'){
+		document.forms[0].action = "skyTeamSummerRewardsChange.action";
+	}
+	document.forms[0].submit();
+}
+
+function cancelReservation(){
+	var stringUrl = "/WEB-INF/jsps/popup/cancelReservationPopup.jsp";
+	showPageInPopup("",stringUrl,"600","");
+}
+
+function cancelAndPay(){
+	hideLayeredPopup();
+	if(showLoadingSplash(PLEASE_WAIT_TEXT)){ //aay 20150817 - QC 2751
+		document.forms[0].action = "awardTravelCancelReservation.action";
+		document.forms[0].submit();
+	}
+}
+
+function forfeitPopup(){
+	hideLayeredPopup();
+	var stringUrl = "/WEB-INF/jsps/popup/forfeitTicketPopup.jsp";
+	showPageInPopup("",stringUrl,"600","");
+}
+
+function partialForfeitPopup(){
+	hideLayeredPopup();
+	var stringUrl = "/WEB-INF/jsps/popup/partialForfeitTicketPopup.jsp";
+	showPageInPopup("",stringUrl,"600","");
+}
+
+function cancelAndForfeit(){
+	hideLayeredPopup();
+	if(showLoadingSplash(PLEASE_WAIT_TEXT)){ //aay 20150817 - QC 2751
+		document.forms[0].action = "awardTravelConfirmCancel.action?forfeit=forfeit";
+		document.forms[0].submit();
+	}
+}
+
+function cancelChanges(){
+	var stringUrl = "/WEB-INF/jsps/popup/cancelChangesPopup.jsp";
+	showPageInPopup("",stringUrl,"350","200");
+}
+
+function reissueOneGreatTeam(pnrNumber) {
+	var flightStatus = document.getElementsByName("selectFlightStatus");
+	//var isFlight = false;
+	var isFlightChanged = false;
+	if(flightStatus != null){
+		for(var i =0; i< flightStatus.length; i++){
+			if(flightStatus[i].value == 'ADD' ){
+				isFlightChanged = true;
+				break;
+			}
+		}		
+	}	
+	if(isFlightChanged){
+		if(isValidAwardTravelForm()){
+		var resp = confirm("Are you sure you want to update the listing details for Record Locator "
+					+ pnrNumber + " ?");
+		if (!resp) {
+			return;
+		}
+			if(showLoadingSplash(PLEASE_WAIT_TEXT)){ //aay 20150817 - QC 2751
+				document.forms[0].action = "oneGreatTeamReissueFareQuote.action";
+				document.forms[0].submit();
+			}
+		}
+	}else if(!isFlightChanged){
+		alert("There are no changes in the itinerary");
+	}else{
+		alert("At least one flight (CONF/ADD) must be  in the itinerary");
+	}	
+}
+
+function isValidAwardTravelForm(){
+	var reserveForm = document.forms[0];
+	if (!validPhoneNumber(reserveForm.phoneNumber)) {
+		return false;
+	}	
+	if(!validEmailAddress(reserveForm.email)){
+		return false;
+	}
+	return true;
+}
+
+function reissueNewDay(pnrNumber) {
+	var flightStatus = document.getElementsByName("selectFlightStatus");
+	var isFlightChanged = false;
+	if(flightStatus != null){
+		for(var i =0; i< flightStatus.length; i++){
+			if(flightStatus[i].value == 'ADD' ){
+				isFlightChanged = true;
+				break;
+			}
+		}		
+	}	
+	if(isFlightChanged){
+		 if(isValidAwardTravelForm()){
+		var resp = confirm("Are you sure you want to update the listing details for Record Locator "
+					+ pnrNumber + " ?");
+		if (!resp) {
+			return;
+		}
+		if(showLoadingSplash(PLEASE_WAIT_TEXT)){ //aay 20150817 - QC 2751
+				document.forms[0].action = "newDayReissueFareQuote.action";
+				document.forms[0].submit();
+			}
+		}
+	}else if(!isFlightChanged){
+		alert("There are no changes in the itinerary");
+	}else{
+		alert("At least one flight (CONF/ADD) must be  in the itinerary");
+	}	
+}
+
+function reissueSkyTeamSummerRewards(pnrNumber) {
+	var flightStatus = document.getElementsByName("selectFlightStatus");
+	var isFlightChanged = false;
+	if(flightStatus != null){
+		for(var i =0; i< flightStatus.length; i++){
+			if(flightStatus[i].value == 'ADD' ){
+				isFlightChanged = true;
+				break;
+			}
+		}		
+	}	
+	if(isFlightChanged){
+		if(isValidAwardTravelForm()){
+		var resp = confirm("Are you sure you want to update the listing details for Record Locator "
+					+ pnrNumber + " ?");
+		if (!resp) {
+			return;
+		}
+			if(showLoadingSplash(PLEASE_WAIT_TEXT)){ //aay 20150817 - QC 2751
+				document.forms[0].action = "skyTeamSummerRewardsReissueFareQuote.action";
+				document.forms[0].submit();
+			}
+		}
+	}else if(!isFlightChanged){
+		alert("There are no changes in the itinerary");
+	}else{
+		alert("At least one flight (CONF/ADD) must be  in the itinerary");
+	}
+}
+//nmm 20140902 - removed this with struts2 rewrite
+//function getOverBookCount() {
+//	var overbookCount = 0;
+//	var body = document.getElementById("data");
+//	var rows = body.getElementsByTagName("tr");
+//	var counter = rows.length;
+
+//	for ( var i = 1; i < counter; i++) {
+//		var data = rows[i].getElementsByTagName("select");
+//		if( data == null || data.length < 1 ){
+//			continue;
+//		}
+//		var selIdx = data[0].selectedIndex;
+//		var selVal = data[0][selIdx].value;
+//		if (selVal == "overbook") {
+//			overbookCount++;
+//		}
+//	}
+//	return overbookCount;
+//}
+
+function showLoadingSplash(splashText) {
+	if(setupSplash(splashText)){
+		return true;
+	}
+	return false;
+}
+
+function setupSplash(splashText){
+	var loadSplash = document.getElementById("loadingSplash");
+	var innerText = "<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>";
+	innerText += "<div class=\"splashText\">";
+	if (splashText != null && splashText != "") {
+		innerText += splashText;
+	} else {
+		innerText += PLEASE_WAIT_TEXT; //aay 20150817 - QC 2751
+	}
+	innerText += "</div>";
+	loadSplash.innerHTML = innerText;
+
+	hideAllSelectElement();
+	document.getElementById("topAnchor").focus();
+	loadSplash.style.visibility = "visible";
+	return true;
+}
+
+//rqb 20140107 - dwr that calls an action class does not work in struts2
+function showErrorOccurredAwardTravelPopup(origin, destination, errorMessage){
+	var stringUrl = "/WEB-INF/jsps/popup/errorOccurredPopup.jsp?origin=" + origin + "&destination=" + destination + "&errorMessage=" + errorMessage;
+	showInLayeredPopup("","400","");
+	Popup.getErrorOccurredMessage(stringUrl, function(data) {
+    	dwr.util.setValue("forward", data, { escapeHtml:false });
+	    checkForTimeout("forward");
+	    emptyPopupSplash();
+    	showLayeredPopup();
+	});
+}
+
+function myReservationsLearnMorePopup() {
+	//var stringUrl = "/myReservationsLearnMorePopup.action";
+	var stringUrl = "/WEB-INF/jsps/myreservations/myReservationsLearnMorePopup.jsp";
+	showPageInPopup("",stringUrl,"500","");
+}
+/* NOT USED
+function printAwardTravelPopup() {
+	var stringUrl = "/printAwardTravelPopup.do";
+	showPageInPopup("",stringUrl,"750","");
+}
+*/
+function printAndClose(){
+	if( window.print() ){
+		window.close();
+	}
+}
+/* NOT USED
+function showBookingConfirmationPopup() {
+	var date= new Date(); // don't remove, this is important.
+	var stringUrl = "/printBookingConfirmationPopup.do";
+	showPageInPopup("",stringUrl,"950","");
+}
+*/
+function emailBookingConfirmationCheckPopup(bookingType, activeMenu) {
+	var source= "";
+	emailResultsPopup(activeMenu, '', bookingType);	
+}
+
+function emailResultsPopup(activeMenu, source, bookingType) {
+	var stringUrl="";
+	if(bookingType.length<1 && source.length >1){
+		emailAwardsTravelResults(source)
+	}else{
+		var stringUrl ="/WEB-INF/jsps/popup/emailResultsPopup.jsp";	
+		showInLayeredPopup("","700","");
+		Popup.getInclude(stringUrl, function(data) {
+    	dwr.util.setValue("forward", data, { escapeHtml:false });
+	    checkForTimeout("forward");
+	    emptyPopupSplash();
+    	showLayeredPopup();
+		});
+	}
+}
+
+function emailAwardsTravelResults(source) {
+	var activeMenu = document.forms[0].activeMenu.value;
+	var stringUrl = "/WEB-INF/jsps/popup/emailResultsPopup.jsp?source="+source+"&activeMenu="+activeMenu;	
+	showInLayeredPopup("","700","");
+	Popup.awardTravelEmailResults(stringUrl, function(data) {
+    	dwr.util.setValue("forward", data, { escapeHtml:false });
+	    checkForTimeout("forward");
+	    emptyPopupSplash();
+    	showLayeredPopup();
+	});
+}
+
+function validateAwardEmailItinerary(){
+
+	var confirm = emailAwardItineraryConfirm();
+	var mail = trim(document.forms["emailResultForm"].emailAddress.value);
+	if(!validateEmailAddress(mail)){
+		return false;		
+	}else if(!confirm){
+		alert("You must agree in order to proceed.")
+		return false;
+	}else{
+		//retVal = "/awardEmailItinerary.do?emailAddress="+mail;			
+		//hideLayeredPopup();
+		//showNewEmailResponsePopUp(retVal);
+		retVal = "/WEB-INF/jsps/popup/emailItineraryConfirmationPopup.jsp?emailAddress="+mail;
+		hideLayeredPopup();
+		showInLayeredPopup("","700","");
+		Popup.awardEmailItinerary(retVal, function(data) {
+    		dwr.util.setValue("forward", data, { escapeHtml:false });
+	    	checkForTimeout("forward");
+	    	emptyPopupSplash();
+    		showLayeredPopup();
+		});		
+	}
+	return true;
+}
+
+function emailAwardItineraryConfirm() {
+	var emailForm =document.forms["emailResultForm"];
+	if (emailForm.emailConfirmCheck.checked) {
+		emailForm.emailConfirmCheck.value = "true";
+		return true;
+	} else {
+		emailForm.emailConfirmCheck.value = "false";
+	}
+	return false;
+}
+
+
+
+//function emailCancelPopup(activeMenu) {
+//	var stringUrl = "/emailCancelPopup.do?activeMenu="+activeMenu;
+//	showPageInPopup("",stringUrl,"700","");
+//}
+
+//nmb 201205 Dawgs - Calculators start
+function buddyYieldCalculatorInfo() {
+	//rqb 20131226 - Struts2 - dwr that calls an action class doesn't work in struts2
+	//var stringUrl = "/calculatorInfoPopup.do";
+	var stringUrl = "/WEB-INF/jsps/calculatorPopup.jsp";
+	showPageInPopupCalc("",stringUrl,"500","");
+}
+
+function returnToSearchPage() {
+	document.forms[0].action = "nonRevenueSearch.action?fromTools=true";
+	document.forms[0].submit();
+}
+//nmb 201205 Dawgs - Calculators end
+
+function sendNewEmail(bookingConfirmation){
+	var emailForm = document.forms["emailResultForm"];
+	var email = emailForm.emailAddress.value;
+	var senderEmailAddress = emailForm.senderEmailAddress.value;
+	var errorMessage = "";
+	var comment = emailForm.comment.value;
+	var source = emailForm.source.value;
+	var activeMenu = emailForm.activeMenu.value;
+	var rememberRecipient = emailForm.rememberRecipient.checked;
+	var rememberSender =  emailForm.rememberSender.checked;
+	var invalidEmail = false;
+	var bookingType = document.forms[0].bookingType;
+	if(rememberRecipient){
+		rememberRecipient = 'on';
+	}else{
+		rememberRecipient = 'off';
+	}
+	if(rememberSender){
+		rememberSender = 'on';
+	}else{
+		rememberSender = 'off';
+	}
+	
+	if (checkNull(email)) {
+		errorMessage += "Email is required.\n";
+		emailForm.emailAddress.focus();
+	} else if (!validateEmailAddress(email)) {
+		invalidEmail = true;
+		emailForm.emailAddress.focus();
+	}
+	
+	if (checkNull(senderEmailAddress)) {
+		errorMessage += "Sender Email is required.\n";
+		emailForm.senderEmailAddress.focus();
+	} else if (!validateEmailAddress2(senderEmailAddress)) {
+		errorMessage += "Please enter a single valid sender email address.\n";
+		emailForm.senderEmailAddress.focus();
+	}	
+	
+	if (errorMessage.length < 1 && invalidEmail==false) {
+		if (bookingConfirmation != null){			
+			if(bookingType == null){
+				bookingType = document.emailForm.bookingType.value;
+			}else{
+				bookingType = document.forms[0].bookingType.value;
+			}
+			var retVal;
+			if(bookingConfirmation =='reservationListings'){
+				//retVal ="/awardTravelSendEmailBookingConfirmation.do?bookingType="+bookingType+"&emailAddress="+email+"&senderEmailAddress="+senderEmailAddress+"&comment="+comment+
+				retVal ="/WEB-INF/jsps/popup/emailResultsPopup.jsp?bookingType="+bookingType+"&emailAddress="+email+"&senderEmailAddress="+senderEmailAddress+"&comment="+comment+
+					"&source="+source+"&activeMenu="+activeMenu+"&rememberRecipient="+rememberRecipient+"&rememberSender="+rememberSender;
+				awardTravelSendEmailBookingConfirmation(retVal);
+			}else{
+				//retVal ="/awardTravelSendEmailBookingConfirmation.do?bookingType="+bookingType+"&emailAddress="+email+"&senderEmailAddress="+senderEmailAddress+"&comment="+comment+
+				retVal ="/WEB-INF/jsps/popup/emailResultsPopup.jsp?bookingType="+bookingType+"&emailAddress="+email+"&senderEmailAddress="+senderEmailAddress+"&comment="+comment+
+					"&source="+source+"&activeMenu="+activeMenu+"&rememberRecipient="+rememberRecipient+"&rememberSender="+rememberSender;
+				awardTravelSendEmailBookingConfirmation(retVal);
+			}	
+		}else{	
+			//retVal = "/awardTravelSendEmailResults.do?emailAddress="+email+"&senderEmailAddress="+senderEmailAddress+"&comment="+comment+
+			retVal = "/WEB-INF/jsps/popup/emailResultsMessagePopup.jsp?emailAddress="+email+"&senderEmailAddress="+senderEmailAddress+"&comment="+comment+
+			"&source="+source+"&activeMenu="+activeMenu+"&rememberRecipient="+rememberRecipient+"&rememberSender="+rememberSender;			
+			awardTravelSendEmailResults(retVal);	
+		}	
+		//hideLayeredPopup();
+		//showNewEmailResponsePopUp(retVal);	
+	}else if(errorMessage.length > 1 || (invalidEmail==false && errorMessage.length > 1)){
+		alert(errorMessage);
+	}
+}
+
+function awardTravelSendEmailBookingConfirmation(retVal) {
+		hideLayeredPopup();
+		showInLayeredPopup("","700","");
+		Popup.awardTravelSendEmailBookingConfirmation(retVal, function(data) {
+    	dwr.util.setValue("forward", data, { escapeHtml:false });
+	    checkForTimeout("forward");
+	    emptyPopupSplash();
+    	showLayeredPopup();
+		});
+}
+
+function awardTravelSendEmailResults(retVal) {
+		hideLayeredPopup();
+		showInLayeredPopup("","700","");
+		Popup.awardTravelSendEmailResults(retVal, function(data) {
+    	dwr.util.setValue("forward", data, { escapeHtml:false });
+	    checkForTimeout("forward");
+	    emptyPopupSplash();
+    	showLayeredPopup();
+		});
+}
+
+function showNewEmailResponsePopUp(retVal){
+	var stringUrl = retVal;
+	showPageInPopup("",stringUrl,"700","");		
+}
+
+function clearAwardEmailFormFields(){
+	var emailForm = document.forms["emailResultForm"];
+	emailForm.emailAddress.value = "";
+	emailForm.emailConfirmCheck.checked = "";
+}
+
+function clearEmailResultFields(){
+	var emailForm = document.forms["emailResultForm"];
+	emailForm.emailAddress.value = "";
+	emailForm.senderEmailAddress.value = "";
+	emailForm.comment.value = "";
+	emailForm.rememberRecipient.checked= false;
+	emailForm.rememberSender.checked= false;
+	emailForm.emailAddress.focus();
+}
+
+//function sendNewCancelEmail(activeMenu) {
+//	var emailForm = document.forms["emailResultForm"];
+//	var email = emailForm.emailAddress.value;
+//	var senderEmailAddress = emailForm.senderEmailAddress.value;
+//	var errorMessage = "";
+//	var comment = emailForm.comment.value;	
+//	var rememberRecipient = emailForm.rememberRecipient.checked;
+//	var rememberSender =  emailForm.rememberSender.checked;
+//	var invalidEmail = false;
+//	if(rememberRecipient){
+//		rememberRecipient = 'on';
+//	}else{
+//		rememberRecipient = 'off';
+//	}
+//	if(rememberSender){
+//		rememberSender = 'on';
+//	}else{
+//		rememberSender = 'off';
+//	}
+//	
+//	if (checkNull(email)) {
+//		errorMessage += "Recipient email is required.\n";
+//		emailForm.emailAddress.focus();
+//	} else if (!validateEmailAddress(email)) {	
+//		invalidEmail = true;
+//		emailForm.emailAddress.focus();
+//	}
+//	
+//	if (checkNull(senderEmailAddress)) {
+//		errorMessage += "Sender Email is required.\n";
+//		emailForm.senderEmailAddress.focus();
+//	} else if (!validateEmailAddress2(senderEmailAddress)) {
+//		errorMessage += "Please enter a single valid sender email address.\n";
+//		emailForm.senderEmailAddress.focus();
+//	}	
+//	
+//	if (errorMessage.length < 1 && invalidEmail == false) {
+//		var retVal = "/awardTravelSendCancelEmail.do?emailAddress="+email+"&senderEmailAddress="+senderEmailAddress+"&comment="+comment+
+//			"&rememberRecipient="+rememberRecipient+"&rememberSender="+rememberSender+"&activeMenu=" + activeMenu;			
+//		hideLayeredPopup();
+//		showNewEmailResponsePopUp(retVal, "cancelEmail");	
+//	}else if (errorMessage.length > 1 || (invalidEmail==false && errorMessage.length > 1)){
+//		alert(errorMessage);
+//	}
+//}
+
+function onEnterKey(key_val){
+	var emailForm = document.forms["emailResultForm"];
+	var source = emailForm.source.value;
+	
+	if (event.keyCode == 13){
+		if (source != null && source != ''){
+			sendNewEmail();
+		}else{
+			validateAwardEmailItinerary();
+		}
+	}
+}
+
+function airportStandbyListLearnMorePopup(){
+	//dgg 20110608 Astros QC 850 start
+	var theTop = (screen.height / 2) - (300 / 2);
+	var theLeft = (screen.width / 2) - (500 / 2);
+	var features = 'dialogHeight:' + 300+ 'px,dialogWidth:' + 500 + 'px,dialogTop:' + theTop + 'px,dialogLeft:' + theLeft + 'px' + 'dialogWidth:500px; dialogHeight:300px; scroll:off;';
+	var stringUrl = "airportStandbyListLearnMorePopup.action";
+	//showPageInPopup3("",stringUrl,"500","");
+	window.showModalDialog(stringUrl,window, features);
+	//dgg 20110608 Astros QC 850 end
+}
+
+function processClosePopup(){
+	var forwardBuddyYieldInnerHtml = ''; 
+	var forwardBuddyYield = document.getElementById("forwardBuddyYield");
+	
+	if(forwardBuddyYield != null){
+		forwardBuddyYieldInnerHtml = forwardBuddyYield.innerHTML;
+	}
+	
+	if(forwardBuddyYieldInnerHtml == null || forwardBuddyYieldInnerHtml == ''){
+		hideLayeredPopup();
+	}
+	else{
+		hideLayeredPopup('', 'layeredBuddyYieldFareQuotePopup', 'buddyYieldFareQuotePopupSplash', 'forwardBuddyYield');
+	}
+}

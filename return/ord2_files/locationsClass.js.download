@@ -1,0 +1,203 @@
+
+var Locations = {
+	airports : {},
+	cities : {},
+	states : {},
+	countries : {},
+	searchBy : '',
+	TargetElement : null,
+	citySortArray : [],
+	stateSortArray : [],
+	countrySortArray : [],
+	cityCache : '',
+	stateCache : '',
+	countryCache : '',
+	selectSize : 0,
+	nameSort : function(obj1, obj2) {
+		if(obj1.name > obj2.name) return 1;
+		if(obj1.name < obj2.name) return -1;
+		if(obj1.name == obj2.name) return 0;
+	},
+	init : function(Definition) {
+		
+		Locations.airports = {};
+		Locations.cities = {};
+		Locations.states = {};
+		Locations.countries = {};
+		Locations.searchBy = '';
+		Locations.TargetElement = null;
+		Locations.citySortArray = [];
+		Locations.stateSortArray = [];
+		Locations.countrySortArray = [];
+		Locations.cityCache = '';
+		Locations.stateCache = '';
+		Locations.countryCache = '';
+		//Locations.selectSize = 0;
+		
+		Locations.TargetElement = Definition.TargetElement;
+		Locations.airports = Definition.AirportList;
+		Locations.selectSize = Definition.selectSize;
+		Locations.setCities();
+		Locations.setStates();
+		Locations.setCountries();
+		Locations.citySortArray.sort(Locations.nameSort);
+		Locations.stateSortArray.sort(Locations.nameSort);
+		Locations.countrySortArray.sort(Locations.nameSort);
+		Locations.findBy('city');
+	}, 
+	addOption : function(CurrentSelect, Display, Value) {
+		CurrentSelect.options[CurrentSelect.options.length] = new Option(Display, Value);
+	},
+	closeSelect : function() { return '</select>';},
+	countryFromCode : function(code) {
+		switch(code.toUpperCase()) {
+			case 'US':
+				return 'United States of America';
+				break;
+			case 'CA':
+				return 'Canada';
+				break;
+		}
+		return code;
+	},
+	createCache : function(cacheType) {
+		var cache = [];
+		switch(cacheType.toLowerCase()) {
+			case 'city':
+				cache.push('<h2>Alphabetically</h2>');
+				cache.push(Locations.openSelect({onChangeEvent:'selectAirport2(this.options[this.selectedIndex].value);',name:'City_codes'}));
+				cache.push(Locations.returnCityList());
+				cache.push(Locations.closeSelect());
+				Locations.cityCache = cache.join('');
+				break;
+			case 'state':
+				cache.push('<h2>US States & Canadian Provinces</h2>');
+				cache.push(Locations.openSelect({onChangeEvent:'Locations.setStateOptions(this.options[this.selectedIndex].value, \'City_codes\');',name:'State_codes'}));
+				cache.push(Locations.returnStateList());
+				cache.push(Locations.closeSelect());
+				cache.push('<h2>Airports</h2>');
+				cache.push(Locations.openSelect({onChangeEvent:'selectAirport2(this.options[this.selectedIndex].value);',name:'City_codes'}));
+				cache.push(Locations.closeSelect());
+				Locations.stateCache = cache.join('');
+				break;
+			case 'country':
+				cache.push('<h2>Countries</h2>');
+				cache.push(Locations.openSelect({onChangeEvent:'Locations.setCountryOptions(this.options[this.selectedIndex].value, \'City_codes\');',name:'Country_codes'}));
+				cache.push(Locations.returnCountryList());
+				cache.push(Locations.closeSelect());
+				cache.push('<h2>Airports</h2>');
+				cache.push(Locations.openSelect({onChangeEvent:'selectAirport2(this.options[this.selectedIndex].value);',name:'City_codes'}));
+				cache.push(Locations.closeSelect());
+				Locations.countryCache = cache.join('');
+				break;
+		}
+	},
+	doesCacheExist : function(currentCache) { return ( currentCache == ''	) ? false : true; },
+	findBy : function(value) {
+		switch(value.toLowerCase()) {
+			case 'state':
+				if(!Locations.doesCacheExist(Locations.stateCache)) { Locations.createCache('state'); }
+				setInnerHTML(Locations.TargetElement.id, Locations.stateCache);			
+				break;
+			case 'country':
+				if(!Locations.doesCacheExist(Locations.countryCache)) { Locations.createCache('country'); }
+				setInnerHTML(Locations.TargetElement.id, Locations.countryCache);
+				break;
+			case 'city':
+				if(!Locations.doesCacheExist(Locations.cityCache)) { Locations.createCache('city'); }
+				setInnerHTML(Locations.TargetElement.id, Locations.cityCache);
+				break;
+		}
+	},
+	openSelect : function(Definition) { return '<select onchange="' + Definition.onChangeEvent + '" size="' + Locations.selectSize + '" name="' + Definition.name + '" id="' + Definition.name + '">'; },
+	returnCountryList : function() {
+		var OptionList = [];
+		for(var i=0, j=Locations.countrySortArray.length; i<j; i++) {
+			var Country = Locations.countrySortArray[i];
+			OptionList.push('<option value="' + Country.name + '">' + Country.name + '</option>');
+		}
+		return OptionList.join('');
+	},
+	returnDisplayString : function(ObjectInstance, airportCode) { return ObjectInstance.city + ((exists(ObjectInstance.region)) ? ', ' + ObjectInstance.region : '') + ((exists(ObjectInstance.countryCode)) ? ', ' + ObjectInstance.countryCode : '') + ' (' + airportCode + ')'; },
+	returnStateList : function(appendElementId) {
+		var OptionList = [];
+		for(var i=0, j=Locations.stateSortArray.length; i<j; i++) {
+			var State = Locations.stateSortArray[i];
+			OptionList.push('<option value="' + State.name + '">' + State.name + '</option>');
+		}
+		return OptionList.join('');
+	},
+	returnCityList : function(appendElementId) {
+		var OptionList = [];
+		for(var i=0, j=Locations.citySortArray.length; i<j; i++) {
+			var City = Locations.citySortArray[i];
+			var Airport = Locations.cities[City.name];
+			for(var h=0; h<Airport.length; h++){
+				OptionList.push('<option value="' + Airport[h].code + '">' + Airport[h].displayValue + '</option>');
+			}
+		}
+		return OptionList.join('');
+	},
+	setCities : function() {
+		for(prop in Locations.airports) {
+			var displayName = '';
+			displayName = Locations.airports[prop].city;
+			if(!exists(Locations.cities[displayName])) {
+				Locations.cities[displayName] = [];
+				Locations.citySortArray.push({name:displayName});
+			}
+			Locations.cities[displayName].push({code:prop, displayName:displayName, displayValue:Locations.returnDisplayString(Locations.airports[prop], prop)});			
+		}
+	},
+	setCountries : function() {
+		for(prop in Locations.airports) {
+			var displayName = '';
+			if(Locations.airports[prop].cityType.toLowerCase() == 'domestic') {
+				displayName = this.countryFromCode(this.airports[prop].countryCode);
+			} else {
+				displayName = Locations.airports[prop].region;
+			}
+			if(!exists(Locations.countries[displayName])) {
+				Locations.countries[displayName] = [];
+				Locations.countrySortArray.push({name:displayName});
+			}
+			Locations.countries[displayName].push({code:prop,displayName:displayName, displayValue:Locations.returnDisplayString(Locations.airports[prop], prop)});
+		}
+	},
+	setCountryOptions : function(newCountry, appendElement) {
+		var Select = document.getElementById(appendElement);
+		Select.options.length = 0;
+		if(exists(Locations.countries[newCountry])) {
+			var Airports = Locations.countries[newCountry];
+			for(var i=0, j=Airports.length; i<j; i++) {
+				Locations.addOption(Select, Airports[i].displayValue, Airports[i].code);
+			}
+		}
+	},
+	setStateOptions : function(newState, appendElementId) {
+		var Select = get(appendElementId);
+		Select.options.length = 0;
+		if(exists(Locations.states[newState])) {
+			var Airports = Locations.states[newState];
+			for(var i=0, j=Airports.length; i<j; i++) {
+				Locations.addOption(Select, Airports[i].displayValue, Airports[i].code);
+			}
+		}
+	},
+	setStates : function() {
+		for(prop in Locations.airports) {
+			if(Locations.airports[prop].cityType.toLowerCase() == 'domestic') {
+				var displayName = Locations.stateFromCode(Locations.airports[prop].region);
+				if(!exists(Locations.states[displayName])) {
+					Locations.states[displayName] = [];
+					Locations.stateSortArray.push({name:displayName});
+				}
+				Locations.states[displayName].push({code:prop, displayName:displayName, displayValue:Locations.returnDisplayString(Locations.airports[prop], prop)});
+			}	
+		}
+	},
+	stateFromCode : function(code) {
+		var StateHash = {AL:'Alabama',AK:'Alaska',AS:'American Samoa',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',DC:'District of Columbia',FM:'Federated States of Micronesia',FL:'Florida',GA:'Georgia',GU:'Guam',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MH:'Marshall Islands',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',MP:'Northern Mariana Islands',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PW:'Palau',PA:'Pennsylvania',PR:'Puerto Rico',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VI:'Virgin Islands',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming',AB:'Alberta',BC:'British Columbia',MB:'Manitoba',NB:'New Brunswick',NL:'Newfoundland and Labrador',NT:'Northwest Territories',NS:'Nova Scotia',NU:'Nunavut',ON:'Ontario',PE:'Prince Edward Island',QC:'Quebec',SK:'Saskatchewan',YT:'Yukon'};
+		return ( exists(StateHash[code.toUpperCase()]) ) ? StateHash[code.toUpperCase()] : code;
+	}
+};

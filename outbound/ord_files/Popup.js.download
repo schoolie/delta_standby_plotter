@@ -1,0 +1,132 @@
+
+if (typeof this['dwr'] == 'undefined') this.dwr = {};
+if (typeof dwr['engine'] == 'undefined') dwr.engine = {};
+if (typeof dwr.engine['_mappedClasses'] == 'undefined') dwr.engine._mappedClasses = {};
+
+if (window['dojo']) dojo.provide('dwr.interface.Popup');
+
+if (typeof this['Popup'] == 'undefined') Popup = {};
+
+Popup._path = '/TravelNet/dwr';
+
+
+
+
+
+Popup.getInclude = function(p0, callback) {
+return dwr.engine._execute(Popup._path, 'Popup', 'getInclude', arguments);
+};
+
+
+
+
+
+Popup.getUMNRAlert = function(p0, callback) {
+return dwr.engine._execute(Popup._path, 'Popup', 'getUMNRAlert', arguments);
+};
+
+
+
+
+
+Popup.getSearchAlert = function(p0, callback) {
+return dwr.engine._execute(Popup._path, 'Popup', 'getSearchAlert', arguments);
+};
+
+
+
+
+
+Popup.getBuddyYieldFareQuote = function(p0, callback) {
+return dwr.engine._execute(Popup._path, 'Popup', 'getBuddyYieldFareQuote', arguments);
+};
+
+
+
+
+
+Popup.getCalculatorInfo = function(p0, callback) {
+return dwr.engine._execute(Popup._path, 'Popup', 'getCalculatorInfo', arguments);
+};
+
+
+
+
+
+Popup.getTravelEmbargo = function(p0, callback) {
+return dwr.engine._execute(Popup._path, 'Popup', 'getTravelEmbargo', arguments);
+};
+
+
+
+
+
+Popup.getErrorOccurredMessage = function(p0, callback) {
+return dwr.engine._execute(Popup._path, 'Popup', 'getErrorOccurredMessage', arguments);
+};
+
+
+
+
+
+Popup.getFlightInformation = function(p0, callback) {
+return dwr.engine._execute(Popup._path, 'Popup', 'getFlightInformation', arguments);
+};
+
+
+
+
+
+Popup.showFlightLoad = function(p0, callback) {
+return dwr.engine._execute(Popup._path, 'Popup', 'showFlightLoad', arguments);
+};
+
+
+
+
+
+Popup.awardTravelEmailResults = function(p0, callback) {
+return dwr.engine._execute(Popup._path, 'Popup', 'awardTravelEmailResults', arguments);
+};
+
+
+
+
+
+Popup.awardTravelSendEmailBookingConfirmation = function(p0, callback) {
+return dwr.engine._execute(Popup._path, 'Popup', 'awardTravelSendEmailBookingConfirmation', arguments);
+};
+
+
+
+
+
+Popup.awardTravelSendEmailResults = function(p0, callback) {
+return dwr.engine._execute(Popup._path, 'Popup', 'awardTravelSendEmailResults', arguments);
+};
+
+
+
+
+
+Popup.awardEmailItinerary = function(p0, callback) {
+return dwr.engine._execute(Popup._path, 'Popup', 'awardEmailItinerary', arguments);
+};
+
+
+
+
+
+Popup.getFareRules = function(p0, callback) {
+return dwr.engine._execute(Popup._path, 'Popup', 'getFareRules', arguments);
+};
+
+
+
+
+
+Popup.processErrors = function(p0, callback) {
+return dwr.engine._execute(Popup._path, 'Popup', 'processErrors', arguments);
+};
+
+
