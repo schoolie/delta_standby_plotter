@@ -27,8 +27,8 @@ from bs4 import BeautifulSoup
 
 # In[4]:
 
-# directory = 'outbound'
-directory = 'return'
+directory = 'outbound'
+# directory = 'return'
 
 
 # In[5]:
@@ -172,11 +172,11 @@ def plot_flight(flight, line_count, ax, c='c'):
     t = ax.text(flight.dep_datetime, line_count, dep_str+'->'+arr_str, ha="left", va="bottom")
     #     t = ax.text(flight.arr_datetime, line_count, arr_str, ha="center", va="bottom")
     
-    desc_str = 'FN: {}, Av: {}'.format(flight.flight_num, flight.total_av)
+    desc_str = 'FN: {}, Av: {}'.format(int(flight.flight_num), flight.total_av)
     t = ax.text(flight.arr_datetime, line_count, desc_str, ha="right", va="top")
 
 
-# In[7]:
+# In[8]:
 
 def plot_origin(all_flights, first_flights, selected_destinations, fig=None):
     ### Origin Flights first
@@ -191,22 +191,28 @@ def plot_origin(all_flights, first_flights, selected_destinations, fig=None):
     ax.xaxis.set_major_formatter(myFmt)
     labels = ax.get_xticklabels()
     plt.setp(labels, rotation=30, fontsize=8)
-
+    
 
 
     line_count = 1
     for n, flight in first_flights.iterrows():
-
-        plot_flight(flight, line_count, ax)
-        line_count += 1
+        
+        conn_flights = []
 
         connections = all_flights[all_flights.From == flight.To]
         connections = connections[connections.dep_datetime >= flight.arr_datetime + timedelta(minutes=25)].sort_values('dep_datetime')
 
-        for n, conn_flight in connections.iterrows():
-            
+        for n, conn_flight in connections.iterrows():            
             if conn_flight.To in selected_destinations:
+                conn_flights.append(conn_flight)
                 
+        
+        if len(conn_flights) > 0:
+                
+            plot_flight(flight, line_count, ax)
+            line_count += 1
+            
+            for conn_flight in conn_flights:
                 plot_flight(conn_flight, line_count, ax, c='y')
                 line_count += 1
 
@@ -279,7 +285,7 @@ def plot_destination(all_flights, last_flights, selected_origins, fig=None):
     plt.ylim([line_count,0])
 
 
-# In[8]:
+# In[9]:
 
 def make_date_sliders(start,end,freq='D',fmt='%Y-%m-%d', disp_fmt='%Y-%m-%d'):
         """
@@ -316,7 +322,7 @@ def make_date_sliders(start,end,freq='D',fmt='%Y-%m-%d', disp_fmt='%Y-%m-%d'):
         return slider_start, slider_end
 
 
-# In[18]:
+# In[10]:
 
 ## Build Dashboard
 import ipywidgets as widgets
