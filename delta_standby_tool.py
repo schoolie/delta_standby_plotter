@@ -27,6 +27,12 @@ from bs4 import BeautifulSoup
 
 # In[4]:
 
+# directory = 'outbound'
+directory = 'return'
+
+
+# In[5]:
+
 ### Main Processsing Code
 
 
@@ -35,14 +41,6 @@ main_destinations = set()
 
 
 df = pd.DataFrame()
-
-# directory = 'outbound'
-# earliest_departure = datetime.strptime('16JUN 2017 10:01AM', '%d%b %Y %I:%M%p')
-# latest_arrival = datetime.strptime('17JUN 2017 9:00AM', '%d%b %Y %I:%M%p')
-
-directory = 'return'
-earliest_departure = datetime.strptime('18JUN 2017 2:00PM', '%d%b %Y %I:%M%p')
-latest_arrival = datetime.strptime('19JUN 2017 6:00PM', '%d%b %Y %I:%M%p')
 
 ## Loop over HTML files, convert to DataFrame
 for fn in os.listdir(directory):
@@ -141,11 +139,7 @@ print(origins, destinations, layovers)
 dedup_df = parsed_df.drop_duplicates('flight_num')
 
 
-dedup_df = dedup_df[dedup_df.dep_datetime >= earliest_departure]
-dedup_df = dedup_df[dedup_df.arr_datetime <= latest_arrival]
-
-
-# In[26]:
+# In[6]:
 
 def find_first_last(all_flights, selected_origins, selected_layovers, selected_destinations):
     first_flights = pd.DataFrame()
@@ -176,20 +170,19 @@ def plot_flight(flight, line_count, ax, c='c'):
     arr_str = '{} {}'.format(flight.To, flight.arr_datetime.strftime('%I:%M%p'))
     
     t = ax.text(flight.dep_datetime, line_count, dep_str+'->'+arr_str, ha="left", va="bottom")
-#     t = ax.text(flight.arr_datetime, line_count, arr_str, ha="center", va="bottom")
+    #     t = ax.text(flight.arr_datetime, line_count, arr_str, ha="center", va="bottom")
     
     desc_str = 'FN: {}, Av: {}'.format(flight.flight_num, flight.total_av)
     t = ax.text(flight.arr_datetime, line_count, desc_str, ha="right", va="top")
 
 
-# In[27]:
+# In[10]:
 
-def plot_origin(all_flights, first_flights, fig=None):
+def plot_origin(all_flights, first_flights, selected_destinations, fig=None):
     ### Origin Flights first
     if fig is None:
         fig = plt.figure()
     else:
-        print('clearing')
         fig.clf()
 
     ax = plt.gca()
@@ -211,10 +204,11 @@ def plot_origin(all_flights, first_flights, fig=None):
         connections = connections[connections.dep_datetime >= flight.arr_datetime + timedelta(minutes=25)].sort_values('dep_datetime')
 
         for n, conn_flight in connections.iterrows():
-
-            plot_flight(conn_flight, line_count, ax, c='y')
-
-            line_count += 1
+            
+            if conn_flight.To in selected_destinations:
+                
+                plot_flight(conn_flight, line_count, ax, c='y')
+                line_count += 1
 
     fig.set_size_inches(13, line_count*0.4)
 
@@ -231,13 +225,13 @@ def plot_origin(all_flights, first_flights, fig=None):
 
     plt.ylim([line_count,0])
     
-def plot_destination(all_flights, last_flights, fig=None):
+
+def plot_destination(all_flights, last_flights, selected_origins, fig=None):
     ### Destination Flights first
    
     if fig is None:
         fig = plt.figure()
     else:
-        print('clearing')
         fig.clf()
 
     ax = plt.gca()
@@ -251,22 +245,24 @@ def plot_destination(all_flights, last_flights, fig=None):
     k=0
 
     for n, flight in last_flights.iterrows():
+        
+        connection_found=False
 
+        connections = all_flights[all_flights.To == flight.From]
+        connections = connections[connections.arr_datetime <= flight.dep_datetime - timedelta(minutes=25)].sort_values('dep_datetime')
 
-            connections = all_flights[all_flights.To == flight.From]
+        for n, conn_flight in connections.iterrows():
 
-            connections = connections[connections.arr_datetime <= flight.dep_datetime - timedelta(minutes=25)].sort_values('dep_datetime')
-
-            for n, conn_flight in connections.iterrows():
-
+            if conn_flight.From in selected_origins:
                 plot_flight(conn_flight, line_count, ax, c='c')
 
                 line_count += 1
+                connection_found = True
 
-            if connections.shape[0] > 0:
+        if connection_found:
 
-                plot_flight(flight, line_count, ax, c='y')
-                line_count += 1
+            plot_flight(flight, line_count, ax, c='y')
+            line_count += 1
 
     fig.set_size_inches(13, line_count*0.4)
     plt.grid()
@@ -283,7 +279,7 @@ def plot_destination(all_flights, last_flights, fig=None):
     plt.ylim([line_count,0])
 
 
-# In[28]:
+# In[8]:
 
 def make_date_sliders(start,end,freq='D',fmt='%Y-%m-%d', disp_fmt='%Y-%m-%d'):
         """
@@ -306,20 +302,23 @@ def make_date_sliders(start,end,freq='D',fmt='%Y-%m-%d', disp_fmt='%Y-%m-%d'):
         slider_start = widgets.SelectionSlider(
             description='start',
             options=options,
-            continuous_update=False
+            continuous_update=False,
+            layout=widgets.Layout(width='600px')
         )
         
         slider_end = widgets.SelectionSlider(
             description='end',
             options=options,
             continuous_update=False,
-            value=options[-1][1]
+            value=options[-1][1],
+            layout=widgets.Layout(width='600px')
         )
         return slider_start, slider_end
 
 
-# In[30]:
+# In[11]:
 
+## Build Dashboard
 import ipywidgets as widgets
 
 origin_select = widgets.SelectMultiple(
@@ -377,12 +376,12 @@ def change_states(change):
         
         if plot_radio.value == 'Origin First':
             if first_flights.shape[0] > 0:
-                plot_origin(all_flights, first_flights, fig=fig)
+                plot_origin(all_flights, first_flights, selected_destinations, fig=fig)
             else:
                 fig.clf()
         else:
             if last_flights.shape[0] > 0:
-                plot_destination(all_flights, last_flights, fig=fig)
+                plot_destination(all_flights, last_flights, selected_origins, fig=fig)
             else:
                 fig.clf()
 
@@ -399,11 +398,6 @@ change_states({'name': 'value'})
 
 items = [plot_radio, origin_select, layover_select, destination_select]
 widgets.VBox([widgets.HBox([slider_start, slider_end]), widgets.HBox(items)])
-
-
-
-# In[42]:
-
 
 
 
