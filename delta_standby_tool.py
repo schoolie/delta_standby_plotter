@@ -176,7 +176,7 @@ def plot_flight(flight, line_count, ax, c='c'):
     t = ax.text(flight.arr_datetime, line_count, desc_str, ha="right", va="top")
 
 
-# In[10]:
+# In[7]:
 
 def plot_origin(all_flights, first_flights, selected_destinations, fig=None):
     ### Origin Flights first
@@ -316,7 +316,7 @@ def make_date_sliders(start,end,freq='D',fmt='%Y-%m-%d', disp_fmt='%Y-%m-%d'):
         return slider_start, slider_end
 
 
-# In[11]:
+# In[18]:
 
 ## Build Dashboard
 import ipywidgets as widgets
@@ -352,8 +352,8 @@ plot_radio = widgets.RadioButtons(
 ## Date sliders
 fmt='%Y-%m-%d %I:%M%p'
 
-start_date = datetime.strftime(dedup_df.dep_datetime.min(), fmt)
-end_date = datetime.strftime(dedup_df.arr_datetime.max(), fmt)
+start_date = datetime.strftime(dedup_df.dep_datetime.min() - timedelta(hours=1), fmt)
+end_date = datetime.strftime(dedup_df.arr_datetime.max() + timedelta(hours=1), fmt)
 
 slider_start, slider_end = make_date_sliders(start=start_date, end=end_date, freq='H',fmt=fmt, disp_fmt='%m-%d %I:%M%p')
 
