@@ -145,12 +145,12 @@ dedup_df = dedup_df[dedup_df.dep_datetime >= earliest_departure]
 dedup_df = dedup_df[dedup_df.arr_datetime <= latest_arrival]
 
 
-# In[8]:
+# In[26]:
 
-def find_first_last(selected_origins, selected_layovers, selected_destinations):
+def find_first_last(all_flights, selected_origins, selected_layovers, selected_destinations):
     first_flights = pd.DataFrame()
 
-    for n, flight in dedup_df.iterrows():
+    for n, flight in all_flights.iterrows():
         if flight.From in selected_origins and flight.To in selected_layovers:
             first_flights = first_flights.append(flight, ignore_index=True)
 
@@ -159,7 +159,7 @@ def find_first_last(selected_origins, selected_layovers, selected_destinations):
 
     last_flights = pd.DataFrame()
 
-    for n, flight in dedup_df.iterrows():
+    for n, flight in all_flights.iterrows():
         if flight.From in selected_layovers and flight.To in selected_destinations:
             last_flights = last_flights.append(flight, ignore_index=True)
 
@@ -182,7 +182,7 @@ def plot_flight(flight, line_count, ax, c='c'):
     t = ax.text(flight.arr_datetime, line_count, desc_str, ha="right", va="top")
 
 
-# In[9]:
+# In[27]:
 
 def plot_origin(all_flights, first_flights, fig=None):
     ### Origin Flights first
@@ -283,7 +283,42 @@ def plot_destination(all_flights, last_flights, fig=None):
     plt.ylim([line_count,0])
 
 
-# In[31]:
+# In[28]:
+
+def make_date_sliders(start,end,freq='D',fmt='%Y-%m-%d', disp_fmt='%Y-%m-%d'):
+        """
+        Parameters
+        ----------
+        start : string or datetime-like
+            Left bound of the period
+        end : string or datetime-like
+            Left bound of the period
+        freq : string or pandas.DateOffset, default='D'
+            Frequency strings can have multiples, e.g. '5H' 
+        fmt : string, defauly = '%Y-%m-%d'
+            Format to use to display the selected period
+
+        """
+        date_range=pd.date_range(start=start,end=end,freq=freq)
+        
+        options = [(item.strftime(disp_fmt),item) for item in date_range]
+        
+        slider_start = widgets.SelectionSlider(
+            description='start',
+            options=options,
+            continuous_update=False
+        )
+        
+        slider_end = widgets.SelectionSlider(
+            description='end',
+            options=options,
+            continuous_update=False,
+            value=options[-1][1]
+        )
+        return slider_start, slider_end
+
+
+# In[30]:
 
 import ipywidgets as widgets
 
@@ -315,6 +350,15 @@ plot_radio = widgets.RadioButtons(
     disabled=False
 )
 
+## Date sliders
+fmt='%Y-%m-%d %I:%M%p'
+
+start_date = datetime.strftime(dedup_df.dep_datetime.min(), fmt)
+end_date = datetime.strftime(dedup_df.arr_datetime.max(), fmt)
+
+slider_start, slider_end = make_date_sliders(start=start_date, end=end_date, freq='H',fmt=fmt, disp_fmt='%m-%d %I:%M%p')
+
+
 fig = plt.figure()
 
 def change_states(change):
@@ -325,19 +369,20 @@ def change_states(change):
         selected_origins = origin_select.value
         selected_layovers = layover_select.value
         selected_destinations = destination_select.value
-                
         
-        first_flights, last_flights = find_first_last(selected_origins, selected_layovers, selected_destinations)
-        print(first_flights.shape, last_flights.shape)
+        all_flights = dedup_df[dedup_df.dep_datetime > slider_start.value]
+        all_flights = all_flights[all_flights.arr_datetime < slider_end.value]
+                
+        first_flights, last_flights = find_first_last(all_flights, selected_origins, selected_layovers, selected_destinations)
         
         if plot_radio.value == 'Origin First':
             if first_flights.shape[0] > 0:
-                plot_origin(dedup_df, first_flights, fig=fig)
+                plot_origin(all_flights, first_flights, fig=fig)
             else:
                 fig.clf()
         else:
             if last_flights.shape[0] > 0:
-                plot_destination(dedup_df, last_flights, fig=fig)
+                plot_destination(all_flights, last_flights, fig=fig)
             else:
                 fig.clf()
 
@@ -346,92 +391,23 @@ origin_select.observe(change_states)
 layover_select.observe(change_states)
 destination_select.observe(change_states)
 plot_radio.observe(change_states)
+slider_start.observe(change_states)
+slider_end.observe(change_states)
 
 change_states({'name': 'value'})
 
-dateslider = widgets.FloatRangeSlider(
-    value=[dedup_df.dep_datetime.min(), dedup_df.arr_datetime.max()],
-    min=dedup_df.dep_datetime.min(),
-    max=dedup_df.arr_datetime.max(),
-    step=timedelta(hours=1),
-    description='Test:',
-    disabled=False,
-    continuous_update=False,
-    orientation='horizontal',
-    readout=True,
-    readout_format='i',
-    slider_color='white',
-    color='black'
-)
-
 
 items = [plot_radio, origin_select, layover_select, destination_select]
-widgets.VBox([dateslider, widgets.HBox(items)])
+widgets.VBox([widgets.HBox([slider_start, slider_end]), widgets.HBox(items)])
 
 
 
-# In[29]:
-
-enddate
+# In[42]:
 
 
-# In[20]:
-
-import pandas as pd
-import ipywidgets as widgets
-from IPython.display import display
-
-class DateRangePicker(object):
-    def __init__(self,start,end,freq='D',fmt='%Y-%m-%d'):
-        """
-        Parameters
-        ----------
-        start : string or datetime-like
-            Left bound of the period
-        end : string or datetime-like
-            Left bound of the period
-        freq : string or pandas.DateOffset, default='D'
-            Frequency strings can have multiples, e.g. '5H' 
-        fmt : string, defauly = '%Y-%m-%d'
-            Format to use to display the selected period
-
-        """
-        self.date_range=pd.date_range(start=start,end=end,freq=freq)
-        options = [(item.strftime(fmt),item) for item in self.date_range]
-        self.slider_start = widgets.SelectionSlider(
-            description='start',
-            options=options,
-            continuous_update=False
-        )
-        self.slider_end = widgets.SelectionSlider(
-            description='end',
-            options=options,
-            continuous_update=False,
-            value=options[-1][1]
-        )
-
-        self.slider_start.on_trait_change(self.slider_start_changed, 'value')
-        self.slider_end.on_trait_change(self.slider_end_changed, 'value')
-
-        self.widget = widgets.Box(children=[self.slider_start,self.slider_end])
-
-    def slider_start_changed(self,key,value):
-        self.slider_end.value=max(self.slider_start.value,self.slider_end.value)
-        self._observe(start=self.slider_start.value,end=self.slider_end.value)
-
-    def slider_end_changed(self,key,value):
-        self.slider_start.value=min(self.slider_start.value,self.slider_end.value)
-        self._observe(start=self.slider_start.value,end=self.slider_end.value)
-
-    def display(self):
-        display(self.slider_start,self.slider_end)
-
-    def _observe(self,**kwargs):
-        if hasattr(self,'observe'):
-            self.observe(**kwargs)
 
 
-# In[6]:
+# In[ ]:
 
 
 
