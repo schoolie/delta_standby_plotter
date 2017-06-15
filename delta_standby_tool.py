@@ -25,13 +25,13 @@ pp = pprint.PrettyPrinter(indent=4)
 from bs4 import BeautifulSoup
 
 
-# In[4]:
+# In[20]:
 
 directory = 'outbound'
 # directory = 'return'
 
 
-# In[5]:
+# In[21]:
 
 ### Main Processsing Code
 
@@ -45,7 +45,7 @@ df = pd.DataFrame()
 ## Loop over HTML files, convert to DataFrame
 for fn in os.listdir(directory):
     if fn[-5:] == '.html':
-        print(fn)
+        # print(fn)
         
         fullpath = os.path.join(directory, fn)
         
@@ -62,8 +62,8 @@ for fn in os.listdir(directory):
             main_origins.add(origin)
             main_destinations.add(destination)
 
-print('Origins:', main_origins)
-print('Destinations:', main_destinations)
+# print('Origins:', main_origins)
+# print('Destinations:', main_destinations)
 
 
 ## Parse Raw DataFrame
@@ -132,14 +132,14 @@ for r, row in parsed_df.iterrows():
     if row.To in main_destinations:
         layovers.add(row.From)
         
-print(origins, destinations, layovers)
+# print(origins, destinations, layovers)
 
 
 ## Reduce dataframe to only unique flights
 dedup_df = parsed_df.drop_duplicates('flight_num')
 
 
-# In[6]:
+# In[22]:
 
 def find_first_last(all_flights, selected_origins, selected_layovers, selected_destinations):
     first_flights = pd.DataFrame()
@@ -176,7 +176,7 @@ def plot_flight(flight, line_count, ax, c='c'):
     t = ax.text(flight.arr_datetime, line_count, desc_str, ha="right", va="top")
 
 
-# In[8]:
+# In[23]:
 
 def plot_origin(all_flights, first_flights, selected_destinations, fig=None):
     ### Origin Flights first
@@ -216,7 +216,7 @@ def plot_origin(all_flights, first_flights, selected_destinations, fig=None):
                 plot_flight(conn_flight, line_count, ax, c='y')
                 line_count += 1
 
-    fig.set_size_inches(13, line_count*0.4)
+    fig.set_size_inches(13, line_count*0.4+1)
 
     plt.grid()
 
@@ -227,8 +227,11 @@ def plot_origin(all_flights, first_flights, selected_destinations, fig=None):
     labels = ax2.get_xticklabels()
     plt.setp(labels, rotation=30, fontsize=8)
 
-    plt.tight_layout()
-
+    try:
+        plt.tight_layout()
+    except ValueError:
+        pass
+    
     plt.ylim([line_count,0])
     
 
@@ -270,7 +273,7 @@ def plot_destination(all_flights, last_flights, selected_origins, fig=None):
             plot_flight(flight, line_count, ax, c='y')
             line_count += 1
 
-    fig.set_size_inches(13, line_count*0.4)
+    fig.set_size_inches(13, line_count*0.4+1)
     plt.grid()
     
     ax2 = ax.twiny()
@@ -280,12 +283,15 @@ def plot_destination(all_flights, last_flights, selected_origins, fig=None):
     labels = ax2.get_xticklabels()
     plt.setp(labels, rotation=30, fontsize=8)
     
-    plt.tight_layout()
+    try:
+        plt.tight_layout()
+    except ValueError:
+        pass
 
     plt.ylim([line_count,0])
 
 
-# In[9]:
+# In[24]:
 
 def make_date_sliders(start,end,freq='D',fmt='%Y-%m-%d', disp_fmt='%Y-%m-%d'):
         """
@@ -322,7 +328,7 @@ def make_date_sliders(start,end,freq='D',fmt='%Y-%m-%d', disp_fmt='%Y-%m-%d'):
         return slider_start, slider_end
 
 
-# In[10]:
+# In[25]:
 
 ## Build Dashboard
 import ipywidgets as widgets
@@ -361,7 +367,7 @@ fmt='%Y-%m-%d %I:%M%p'
 start_date = datetime.strftime(dedup_df.dep_datetime.min() - timedelta(hours=1), fmt)
 end_date = datetime.strftime(dedup_df.arr_datetime.max() + timedelta(hours=1), fmt)
 
-slider_start, slider_end = make_date_sliders(start=start_date, end=end_date, freq='H',fmt=fmt, disp_fmt='%m-%d %I:%M%p')
+slider_start, slider_end = make_date_sliders(start=start_date, end=end_date, freq=timedelta(minutes=30),fmt=fmt, disp_fmt='%m-%d %I:%M%p')
 
 
 fig = plt.figure()
@@ -404,6 +410,11 @@ change_states({'name': 'value'})
 
 items = [plot_radio, origin_select, layover_select, destination_select]
 widgets.VBox([widgets.HBox([slider_start, slider_end]), widgets.HBox(items)])
+
+
+
+# In[ ]:
+
 
 
 
